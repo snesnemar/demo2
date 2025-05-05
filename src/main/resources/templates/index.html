@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>會員系統首頁</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>會員系統首頁</h1>
+
+    <!-- 未登入狀態 -->
+    <div id="not-logged-in">
+        <p>歡迎！請先登入或註冊。</p>
+        <a href="/login"><button>登入</button></a>
+        <a href="/register"><button>註冊</button></a>
+    </div>
+
+    <!-- 登入後狀態 -->
+    <div id="logged-in" style="display:none;">
+        <h2>歡迎，<span id="account"></span>！</h2>
+        <p><strong>帳號：</strong><span id="account-display"></span></p>
+        <p><strong>Email：</strong><span id="email"></span></p>
+        <p><strong>目前點數：</strong><span id="points"></span> 點</p>
+
+        <a href="/reset-password"><button>修改密碼</button></a>
+        <a href="/activity"><button>前往參加活動</button></a>
+        <a href="/points"><button>加點紀錄</button></a>
+        <button onclick="logout()">登出</button>
+    </div>
+</div>
+
+<script>
+    // 呼叫後端 API 確認是否有登入
+    fetch('/api/members/me')
+        .then(res => {
+            if (!res.ok) throw new Error("未登入");
+            return res.json();
+        })
+        .then(member => {
+            document.getElementById("not-logged-in").style.display = "none";
+            document.getElementById("logged-in").style.display = "block";
+            document.getElementById("account").textContent = member.account;
+            document.getElementById("account-display").textContent = member.account;
+            document.getElementById("email").textContent = member.email;
+
+            fetch(`/api/members/${member.id}/points`)
+                .then(res => res.json())
+                .then(points => {
+                    document.getElementById("points").textContent = points;
+                });
+        })
+        .catch(() => {
+            // 未登入就維持預設畫面
+        });
+
+    function logout() {
+        fetch('/logout', { method: 'POST' })
+            .then(() => {
+                location.reload();
+            });
+    }
+</script>
+</body>
+</html>

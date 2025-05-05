@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>活動列表</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>可參加的活動</h1>
+
+    <div id="message" style="color:green; margin-bottom: 10px;"></div>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+        <tr>
+            <th>活動名稱</th>
+            <th>開始時間</th>
+            <th>結束時間</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="activityList"></tbody>
+    </table>
+
+    <br>
+    <a href="/index"><button>返回首頁</button></a>
+</div>
+
+<script>
+    let currentMember = null;
+
+    fetch("/api/members/me")
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("未登入");
+            }
+            return res.json();
+        })
+        .then(data => {
+            currentMember = data;
+            loadActivities();
+        })
+        .catch(() => {
+            alert("請先登入");
+            window.location.href = "/login";
+        });
+
+    function loadActivities() {
+        fetch("/api/activities")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("activityList");
+                tbody.innerHTML = "";
+
+                data.forEach(act => {
+                    const row = document.createElement("tr");
+
+                    let actionButton = "";
+
+                    if (act.expired) {
+                        actionButton = '<span style="color: gray;">已過期</span>';
+                    } else if (act.notStarted) {
+                        actionButton = '<span style="color: orange;">尚未開始</span>';
+                    } else {
+                        actionButton = `<button onclick="joinActivity(${act.id})">參加</button>`;
+                    }
+
+                    row.innerHTML = `
+                    <td>${act.name}</td>
+                    <td>${act.startTime.replace("T", " ")}</td>
+                    <td>${act.endTime.replace("T", " ")}</td>
+                    <td>${actionButton}</td>
+                `;
+                    tbody.appendChild(row);
+                });
+            });
+    }
+
+
+    function joinActivity(activityId) {
+        if (!currentMember) return;
+
+        fetch("/api/activities/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                memberId: currentMember.id,
+                activityId
+            })
+        })
+            .then(res => res.text())
+            .then(msg => {
+                document.getElementById("message").textContent = msg;
+                loadActivities();
+            });
+    }
+</script>
+
+</body>
+</html>

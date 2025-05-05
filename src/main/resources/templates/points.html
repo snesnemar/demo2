@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>加點紀錄</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>加點紀錄</h1>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+        <tr>
+            <th>活動名稱</th>
+            <th>獲得點數</th>
+            <th>參與時間</th>
+        </tr>
+        </thead>
+        <tbody id="pointList"></tbody>
+    </table>
+
+    <br>
+    <a href="/index"><button>返回首頁</button></a>
+</div>
+
+<script>
+    let currentMember = null;
+
+    fetch("/api/members/me")
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("未登入");
+            }
+            return res.json();
+        })
+        .then(data => {
+            currentMember = data;
+            loadPointRecords();
+        })
+        .catch(() => {
+            alert("請先登入");
+            window.location.href = "/login";
+        });
+
+    function loadPointRecords() {
+        fetch(`/api/points?memberId=${currentMember.id}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("pointList");
+                tbody.innerHTML = "";
+
+                data.forEach(record => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${record.activity?.name || "（無資料）"}</td>
+                        <td>${record.points}</td>
+                        <td>${record.createdAt.replace("T", " ")}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+    }
+</script>
+</body>
+</html>
