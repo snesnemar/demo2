@@ -56,6 +56,10 @@ public class Activity {
     public boolean isNotStarted() {
         return startTime != null && startTime.isAfter(LocalDateTime.now());
     }
+
+    public boolean getNotStarted() {
+        return isNotStarted();
+    }
     public void setNotStarted(boolean notStarted) {
         this.notStarted = notStarted;
     }

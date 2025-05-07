@@ -8,6 +8,7 @@ import com.example.demo2.repository.ActivityRepository;
 import com.example.demo2.repository.ActivityLogRepository;
 import com.example.demo2.repository.PointRecordRepository;
 import com.example.demo2.repository.MemberRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo2.entity.Member;
@@ -52,6 +53,7 @@ public class ActivityService {
     /**
      * 讓會員參加活動
      */
+    @Transactional
     public String joinActivity(Long memberId, Long activityId) {
         // 查活動是否存在
         Optional<Activity> optionalActivity = activityRepository.findById(activityId);
